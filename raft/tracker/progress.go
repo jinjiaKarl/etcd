@@ -28,6 +28,7 @@ import (
 // strewn around `*raft.raft`. Additionally, some fields are only used when in a
 // certain State. All of this isn't ideal.
 type Progress struct {
+	// next记录需要发送给每个follower节点的下一条日志的索引值；match记录已经复制给每个follower节点的最大日志索引值
 	Match, Next uint64
 	// State defines how the leader should interact with the follower.
 	//

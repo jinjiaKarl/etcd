@@ -24,8 +24,8 @@ message Entry {
 
 message SnapshotMetadata {
 	optional ConfState conf_state = 1 [(gogoproto.nullable) = false];
-	optional uint64    index      = 2 [(gogoproto.nullable) = false];
-	optional uint64    term       = 3 [(gogoproto.nullable) = false];
+	optional uint64    index      = 2 [(gogoproto.nullable) = false];  // 当前快照最后一条日志对应的索引
+	optional uint64    term       = 3 [(gogoproto.nullable) = false];  // 当前快照最后一条日志对应的term
 }
 
 message Snapshot {
@@ -78,9 +78,9 @@ message Message {
 }
 
 message HardState {
-	optional uint64 term   = 1 [(gogoproto.nullable) = false];
-	optional uint64 vote   = 2 [(gogoproto.nullable) = false];
-	optional uint64 commit = 3 [(gogoproto.nullable) = false];
+	optional uint64 term   = 1 [(gogoproto.nullable) = false]; // 当前term number
+	optional uint64 vote   = 2 [(gogoproto.nullable) = false]; // 当前节点投票给谁
+	optional uint64 commit = 3 [(gogoproto.nullable) = false]; // 当前节点已知的、最大的、已提交的日志索引值
 }
 
 // ConfChangeTransition specifies the behavior of a configuration change with

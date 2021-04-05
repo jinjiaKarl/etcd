@@ -21,6 +21,7 @@ import (
 	pb "go.etcd.io/etcd/raft/v3/raftpb"
 )
 
+// 提供的很多方法都先尝试调用unstable相应的方法，如果失败了，再次尝试调用storage的方法
 type raftLog struct {
 	// storage contains all stable entries since the last snapshot.
 	storage Storage
@@ -29,12 +30,15 @@ type raftLog struct {
 	// they will be saved into storage.
 	unstable unstable
 
+	// committed and applied  ?????????
 	// committed is the highest log position that is known to be in
 	// stable storage on a quorum of nodes.
+	// 已提交的entry记录中的最大的索引值；已经提交代表着已经提交的state machine
 	committed uint64
 	// applied is the highest log position that the application has
 	// been instructed to apply to its state machine.
 	// Invariant: applied <= committed
+	// applied代表被上层模块使用到的最大的索引值
 	applied uint64
 
 	logger Logger
@@ -85,17 +89,18 @@ func (l *raftLog) String() string {
 
 // maybeAppend returns (0, false) if the entries cannot be appended. Otherwise,
 // it returns (last index of new entries, true).
+//
 func (l *raftLog) maybeAppend(index, logTerm, committed uint64, ents ...pb.Entry) (lastnewi uint64, ok bool) {
 	if l.matchTerm(index, logTerm) {
 		lastnewi = index + uint64(len(ents))
 		ci := l.findConflict(ents)
 		switch {
-		case ci == 0:
-		case ci <= l.committed:
+		case ci == 0: // 当前raftlog包含了所有待添加的Entry记录
+		case ci <= l.committed: // 冲突的位置是已经提交的记录
 			l.logger.Panicf("entry %d conflict with committed entry [committed(%d)]", ci, l.committed)
 		default:
 			offset := index + 1
-			l.append(ents[ci-offset:]...)
+			l.append(ents[ci-offset:]...) // 将ents中没有冲突的部分追加到raftlog
 		}
 		l.commitTo(min(committed, lastnewi))
 		return lastnewi, true

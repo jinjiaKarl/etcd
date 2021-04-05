@@ -20,12 +20,14 @@ import pb "go.etcd.io/etcd/raft/v3/raftpb"
 // Note that unstable.offset may be less than the highest log
 // position in storage; this means that the next write to storage
 // might need to truncate the log before persisting unstable.entries.
+// 对于leader节点，维护客户端请求对应的entry记录
+// 对于follower节点，维护从leader节点复制来的entry记录
 type unstable struct {
 	// the incoming unstable snapshot, if any.
 	snapshot *pb.Snapshot
 	// all entries that have not yet been written to storage.
 	entries []pb.Entry
-	offset  uint64
+	offset  uint64 // entries中第一条entry记录的索引值
 
 	logger Logger
 }
